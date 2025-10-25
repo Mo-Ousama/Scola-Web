@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Scola</title>
+    <meta name="description" content="Your personal learning dashboard on Scola. Track progress, access courses, and collaborate with peers.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-teal': '#0D4F4F',
+                        'warm-coral': '#FF6B6B',
+                        'soft-lavender': '#A8A8FF',
+                        'sage-green': '#8FBC8F',
+                        'warm-beige': '#F5F5DC',
+                        'golden-yellow': '#FFD700',
+                        'soft-blue': '#87CEEB'
+                    },
+                    fontFamily: {
+                        'display': ['Inter', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .dashboard-bg {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .code-editor {
+            background: #1a1a1a;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .achievement-badge {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .chat-bubble {
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .chat-bubble.user {
+            background: #0D4F4F;
+            color: white;
+            margin-left: auto;
+            border-radius: 18px 18px 4px 18px;
+        }
+        
+        .chat-bubble.peer {
+            background: #f1f5f9;
+            color: #1e293b;
+            margin-right: auto;
+            border-radius: 18px 18px 18px 4px;
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .floating-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="font-display dashboard-bg min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-deep-teal">Scola</a>
+                    <span class="ml-4 text-gray-500">Student Dashboard</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-warm-coral rounded-full flex items-center justify-center text-white font-bold">
+                            A
+                        </div>
+                        <span class="text-gray-700 font-medium">Alex Johnson</span>
+                    </div>
+                    <button class="text-gray-500 hover:text-deep-teal">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7H4l5-5v5z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Section -->
+        <div class="mb-8 scroll-reveal">
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-deep-teal mb-2">Welcome back, Alex! 👋</h1>
+                        <p class="text-gray-600">Ready to continue your coding adventure? You're making great progress!</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-warm-coral">Level 7</div>
+                        <div class="text-sm text-gray-500">Python Explorer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Left Column - Progress & Courses -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Progress Overview -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Learning Progress</h2>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <!-- Overall Progress -->
+                        <div class="text-center">
+                            <div class="relative w-24 h-24 mx-auto mb-4">
+                                <svg class="progress-ring w-24 h-24">
+                                    <circle cx="48" cy="48" r="40" stroke="#e2e8f0" stroke-width="8" fill="transparent"/>
+                                    <circle cx="48" cy="48" r="40" stroke="#FF6B6B" stroke-width="8" fill="transparent"
+                                            stroke-dasharray="251.2" stroke-dashoffset="75.36" class="progress-ring-circle"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-warm-coral">70%</span>
+                                </div>
+                            </div>
+                            <h3 class="font-semibold text-gray-700">Overall Progress</h3>
+                            <p class="text-sm text-gray-500">23 of 33 courses</p>
+                        </div>
+                        
+                        <!-- Weekly Goal -->
+                        <div class="text-center">
+                            <div class="relative w-24 h-24 mx-auto mb-4">
+                                <svg class="progress-ring w-24 h-24">
+                                    <circle cx="48" cy="48" r="40" stroke="#e2e8f0" stroke-width="8" fill="transparent"/>
+                                    <circle cx="48" cy="48" r="40" stroke="#8FBC8F" stroke-width="8" fill="transparent"
+                                            stroke-dasharray="251.2" stroke-dashoffset="50.24" class="progress-ring-circle"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-xl font-bold text-sage-green">5/7</span>
+                                </div>
+                            </div>
+                            <h3 class="font-semibold text-gray-700">Weekly Goal</h3>
+                            <p class="text-sm text-gray-500">Days studied</p>
+                        </div>
+                        
+                        <!-- Current Streak -->
+                        <div class="text-center">
+                            <div class="w-24 h-24 mx-auto mb-4 bg-golden-yellow rounded-full flex items-center justify-center">
+                                <span class="text-3xl font-bold text-deep-teal">12</span>
+                            </div>
+                            <h3 class="font-semibold text-gray-700">Study Streak</h3>
+                            <p class="text-sm text-gray-500">Days in a row</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Courses -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-deep-teal">My Courses</h2>
+                        <button class="text-warm-coral hover:text-deep-teal font-medium">View All</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Python Course -->
+                        <div class="card-hover border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center space-x-4">
+                                <img src="resources/course-python.jpg" alt="Python Course" class="w-16 h-16 rounded-lg object-cover">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Python Programming Masterclass</h3>
+                                    <p class="text-sm text-gray-600">Lesson 15: Object-Oriented Programming</p>
+                                    <div class="flex items-center mt-2">
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2 mr-3">
+                                            <div class="bg-warm-coral h-2 rounded-full" style="width: 75%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-700">75%</span>
+                                    </div>
+                                </div>
+                                <button class="bg-deep-teal text-white px-4 py-2 rounded-lg hover:bg-warm-coral transition-colors">
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Web Development Course -->
+                        <div class="card-hover border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center space-x-4">
+                                <img src="resources/course-web.jpg" alt="Web Development" class="w-16 h-16 rounded-lg object-cover">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Web Development Fundamentals</h3>
+                                    <p class="text-sm text-gray-600">Lesson 8: CSS Grid and Flexbox</p>
+                                    <div class="flex items-center mt-2">
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2 mr-3">
+                                            <div class="bg-sage-green h-2 rounded-full" style="width: 45%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-700">45%</span>
+                                    </div>
+                                </div>
+                                <button class="bg-deep-teal text-white px-4 py-2 rounded-lg hover:bg-warm-coral transition-colors">
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Game Development Course -->
+                        <div class="card-hover border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center space-x-4">
+                                <img src="resources/course-game.jpg" alt="Game Development" class="w-16 h-16 rounded-lg object-cover">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Game Development with Unity</h3>
+                                    <p class="text-sm text-gray-600">Lesson 3: Player Movement and Physics</p>
+                                    <div class="flex items-center mt-2">
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2 mr-3">
+                                            <div class="bg-golden-yellow h-2 rounded-full" style="width: 20%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-700">20%</span>
+                                    </div>
+                                </div>
+                                <button class="bg-deep-teal text-white px-4 py-2 rounded-lg hover:bg-warm-coral transition-colors">
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Code Playground -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Code Playground</h2>
+                    <div class="code-editor p-4 mb-4">
+                        <div class="flex items-center mb-4">
+                            <div class="flex space-x-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            </div>
+                            <span class="ml-4 text-gray-400 text-sm">playground.py</span>
+                        </div>
+                        <textarea id="code-input" class="w-full h-40 bg-transparent text-green-400 font-mono text-sm resize-none border-none outline-none" placeholder="# Write your code here...
+print('Hello, Scola!')
+for i in range(5):
+    print(f'Count: {i}')"></textarea>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex space-x-2">
+                            <button id="run-code" class="bg-sage-green text-white px-4 py-2 rounded-lg hover:bg-deep-teal transition-colors">
+                                ▶ Run Code
+                            </button>
+                            <button class="bg-soft-blue text-white px-4 py-2 rounded-lg hover:bg-deep-teal transition-colors">
+                                💾 Save
+                            </button>
+                            <button class="bg-soft-lavender text-white px-4 py-2 rounded-lg hover:bg-deep-teal transition-colors">
+                                📤 Share
+                            </button>
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            <span id="code-status">Ready to run</span>
+                        </div>
+                    </div>
+                    <div id="code-output" class="mt-4 p-4 bg-gray-100 rounded-lg font-mono text-sm hidden">
+                        <div class="text-gray-500 mb-2">Output:</div>
+                        <div id="output-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Achievements & Community -->
+            <div class="space-y-8">
+                <!-- Achievements -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Recent Achievements</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="achievement-badge">🏆</div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Python Master</h3>
+                                <p class="text-sm text-gray-600">Completed 10 Python lessons</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="achievement-badge">🔥</div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Streak Champion</h3>
+                                <p class="text-sm text-gray-600">12 days in a row</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="achievement-badge">👥</div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Team Player</h3>
+                                <p class="text-sm text-gray-600">Helped 5 peers</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="achievement-badge">💡</div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Innovator</h3>
+                                <p class="text-sm text-gray-600">Created first project</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Study Group Chat -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Study Group</h2>
+                    <div class="h-64 overflow-y-auto mb-4 space-y-3" id="chat-messages">
+                        <div class="chat-bubble peer p-3">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="font-semibold text-sm">Emma</span>
+                                <span class="text-xs text-gray-500">2 min ago</span>
+                            </div>
+                            <p class="text-sm">Can someone help me with the OOP lesson?</p>
+                        </div>
+                        <div class="chat-bubble user p-3">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="font-semibold text-sm">You</span>
+                                <span class="text-xs text-gray-300">1 min ago</span>
+                            </div>
+                            <p class="text-sm">Sure! What part are you stuck on?</p>
+                        </div>
+                        <div class="chat-bubble peer p-3">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="font-semibold text-sm">Maya</span>
+                                <span class="text-xs text-gray-500">30 sec ago</span>
+                            </div>
+                            <p class="text-sm">I can help too! I just finished that lesson 😊</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <input type="text" id="chat-input" placeholder="Type a message..." class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-coral">
+                        <button id="send-message" class="bg-warm-coral text-white px-4 py-2 rounded-lg hover:bg-deep-teal transition-colors">
+                            Send
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upcoming Assignments -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Upcoming Assignments</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Python Project</h3>
+                                <p class="text-sm text-gray-600">Due in 2 days</p>
+                            </div>
+                            <span class="text-yellow-600 font-bold">!</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Web Quiz</h3>
+                                <p class="text-sm text-gray-600">Due in 5 days</p>
+                            </div>
+                            <span class="text-blue-600 font-bold">i</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Game Design</h3>
+                                <p class="text-sm text-gray-600">Due in 1 week</p>
+                            </div>
+                            <span class="text-green-600 font-bold">✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">This Week</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Study Time</span>
+                            <span class="font-bold text-warm-coral">8.5 hours</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Lessons Completed</span>
+                            <span class="font-bold text-sage-green">12</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Projects Submitted</span>
+                            <span class="font-bold text-soft-blue">3</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Peer Help Given</span>
+                            <span class="font-bold text-soft-lavender">7</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-deep-teal text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2024 Scola Educational Platform. Empowering young coders worldwide.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Student Dashboard JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            initScrollReveal();
+            initCodePlayground();
+            initChatFeature();
+            animateProgressRings();
+        });
+
+        // Scroll reveal animations
+        function initScrollReveal() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Code playground functionality
+        function initCodePlayground() {
+            const runButton = document.getElementById('run-code');
+            const codeInput = document.getElementById('code-input');
+            const codeOutput = document.getElementById('code-output');
+            const outputContent = document.getElementById('output-content');
+            const codeStatus = document.getElementById('code-status');
+
+            runButton.addEventListener('click', function() {
+                const code = codeInput.value;
+                codeStatus.textContent = 'Running...';
+                codeStatus.className = 'text-yellow-600';
+                
+                // Simulate code execution
+                setTimeout(() => {
+                    codeOutput.classList.remove('hidden');
+                    outputContent.innerHTML = `
+                        <div class="text-green-600">Hello, Scola!</div>
+                        <div class="text-blue-600">Count: 0</div>
+                        <div class="text-blue-600">Count: 1</div>
+                        <div class="text-blue-600">Count: 2</div>
+                        <div class="text-blue-600">Count: 3</div>
+                        <div class="text-blue-600">Count: 4</div>
+                        <div class="text-green-600 mt-2">✓ Code executed successfully!</div>
+                    `;
+                    codeStatus.textContent = 'Execution complete';
+                    codeStatus.className = 'text-green-600';
+                    
+                    // Animate the output
+                    anime({
+                        targets: codeOutput,
+                        opacity: [0, 1],
+                        translateY: [20, 0],
+                        duration: 500,
+                        easing: 'easeOutCubic'
+                    });
+                }, 1500);
+            });
+        }
+
+        // Chat functionality
+        function initChatFeature() {
+            const chatInput = document.getElementById('chat-input');
+            const sendButton = document.getElementById('send-message');
+            const chatMessages = document.getElementById('chat-messages');
+
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (message) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'chat-bubble user p-3';
+                    messageDiv.innerHTML = `
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="font-semibold text-sm">You</span>
+                            <span class="text-xs text-gray-300">now</span>
+                        </div>
+                        <p class="text-sm">${message}</p>
+                    `;
+                    
+                    chatMessages.appendChild(messageDiv);
+                    chatInput.value = '';
+                    
+                    // Auto-scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    // Animate new message
+                    anime({
+                        targets: messageDiv,
+                        opacity: [0, 1],
+                        translateY: [20, 0],
+                        duration: 300,
+                        easing: 'easeOutCubic'
+                    });
+                    
+                    // Simulate peer response
+                    setTimeout(() => {
+                        const responses = [
+                            "That's a great question! Let me help you with that.",
+                            "I had the same issue! Here's what worked for me...",
+                            "Thanks for sharing! That's really helpful.",
+                            "I love how we're all learning together! 🚀",
+                            "Has anyone tried this approach before?"
+                        ];
+                        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                        
+                        const peerMessage = document.createElement('div');
+                        peerMessage.className = 'chat-bubble peer p-3';
+                        peerMessage.innerHTML = `
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="font-semibold text-sm">Emma</span>
+                                <span class="text-xs text-gray-500">now</span>
+                            </div>
+                            <p class="text-sm">${randomResponse}</p>
+                        `;
+                        
+                        chatMessages.appendChild(peerMessage);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        
+                        anime({
+                            targets: peerMessage,
+                            opacity: [0, 1],
+                            translateY: [20, 0],
+                            duration: 300,
+                            easing: 'easeOutCubic'
+                        });
+                    }, 1000 + Math.random() * 2000);
+                }
+            }
+
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
+        // Animate progress rings
+        function animateProgressRings() {
+            const progressRings = document.querySelectorAll('.progress-ring-circle');
+            progressRings.forEach(ring => {
+                anime({
+                    targets: ring,
+                    strokeDashoffset: [251.2, ring.style.strokeDashoffset || 0],
+                    duration: 2000,
+                    easing: 'easeOutCubic',
+                    delay: Math.random() * 500
+                });
+            });
+        }
+
+        // Course continue buttons
+        document.querySelectorAll('button').forEach(button => {
+            if (button.textContent.includes('Continue')) {
+                button.addEventListener('click', function() {
+                    // Show notification
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-sage-green text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    notification.textContent = 'Opening lesson...';
+                    document.body.appendChild(notification);
+                    
+                    anime({
+                        targets: notification,
+                        translateX: [300, 0],
+                        opacity: [0, 1],
+                        duration: 300,
+                        easing: 'easeOutCubic'
+                    });
+                    
+                    setTimeout(() => {
+                        anime({
+                            targets: notification,
+                            translateX: 300,
+                            opacity: 0,
+                            duration: 300,
+                            easing: 'easeInCubic',
+                            complete: () => {
+                                document.body.removeChild(notification);
+                            }
+                        });
+                    }, 2000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

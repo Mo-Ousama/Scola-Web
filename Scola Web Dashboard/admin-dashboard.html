@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Scola</title>
+    <!-- Fonts + Libraries + Tailwind (نفس القديم) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-teal': '#0D4F4F',
+                        'warm-coral': '#FF6B6B',
+                        'soft-lavender': '#A8A8FF',
+                        'sage-green': '#8FBC8F',
+                        'warm-beige': '#F5F5DC',
+                        'golden-yellow': '#FFD700',
+                        'soft-blue': '#87CEEB'
+                    },
+                    fontFamily: {
+                        'display': ['Inter', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .dashboard-bg { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; border-radius: 16px; max-width: 500px; width: 90%; padding: 24px; }
+        .scroll-reveal { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
+        .scroll-reveal.revealed { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="font-display dashboard-bg min-h-screen">
+
+<!-- ========== NAVIGATION ========== -->
+<nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center">
+                <img src="resources/logo.png" alt="Scola Logo" class="h-10">
+                <span class="ml-3 text-xl font-bold text-deep-teal">Admin Dashboard</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="logout()" class="text-gray-500 hover:text-deep-teal">Logout</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ========== CONTENT AREA ========== -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Welcome + أرقام ديناميكية -->
+    <div class="mb-8 scroll-reveal">
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-deep-teal mb-2">Welcome back, Admin! 👋</h1>
+                    <p class="text-gray-600">Platform management, analytics, and system oversight for Scola.</p>
+                </div>
+                <div class="flex space-x-4">
+                    <div class="text-center"><div class="text-2xl font-bold text-warm-coral" id="studentsCount">-</div><div class="text-sm text-gray-500">Students</div></div>
+                    <div class="text-center"><div class="text-2xl font-bold text-sage-green" id="teachersCount">-</div><div class="text-sm text-gray-500">Teachers</div></div>
+                    <div class="text-center"><div class="text-2xl font-bold text-soft-blue" id="coursesCount">-</div><div class="text-sm text-gray-500">Courses</div></div>
+                    <div class="text-center"><div class="text-2xl font-bold text-golden-yellow" id="revenueCount">-</div><div class="text-sm text-gray-500">Revenue</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- أرقام ديناميكية -->
+    <section class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="statsSection">
+        <!-- هيتملى بالـ JS -->
+    </section>
+
+    <!-- Quick Actions + Add Users -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 scroll-reveal">
+        <h2 class="text-xl font-bold text-deep-teal mb-6">Quick Actions</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button onclick="openModal('create-assignment')" class="card-hover bg-warm-coral text-white p-4 rounded-xl text-center"><div class="text-2xl mb-2">📝</div><div class="font-semibold">Create Assignment</div></button>
+            <button onclick="openModal('upload-resource')" class="card-hover bg-sage-green text-white p-4 rounded-xl text-center"><div class="text-2xl mb-2">📁</div><div class="font-semibold">Upload Resource</div></button>
+            <button onclick="openModal('start-live-class')" class="card-hover bg-soft-blue text-white p-4 rounded-xl text-center"><div class="text-2xl mb-2">🎥</div><div class="font-semibold">Start Live Class</div></button>
+            <button onclick="openModal('grade-assignments')" class="card-hover bg-soft-lavender text-white p-4 rounded-xl text-center"><div class="text-2xl mb-2">✅</div><div class="font-semibold">Grade Work</div></button>
+            <button onclick="openModal('add-user-modal')" class="card-hover bg-deep-teal text-white p-4 rounded-xl text-center"><div class="text-2xl mb-2">➕</div><div class="font-semibold">Add User</div></button>
+            <button onclick="openModal('manage-users-modal')" class="card-hover bg-warm-coral text-white p-4 rounded-xl text-center"><div class="text-2xl mb-2">👥</div><div class="font-semibold">Manage Users</div></button>
+        </div>
+    </div>
+
+    <!-- Manage Courses (كامل) -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 scroll-reveal">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-deep-teal">Manage Courses</h2>
+            <button id="addCourseBtn" class="bg-warm-coral text-white px-4 py-2 rounded hover:bg-deep-teal transition">+ Add Course</button>
+        </div>
+        <form id="courseForm" class="hidden space-y-4 mb-6 p-4 border rounded">
+            <input type="hidden" name="id">
+            <input name="title" placeholder="Course Title" class="w-full border rounded px-3 py-2" required>
+            <input name="slug" placeholder="URL Slug (no spaces)" class="w-full border rounded px-3 py-2" required>
+            <textarea name="description" placeholder="Course Description" rows="3" class="w-full border rounded px-3 py-2" required></textarea>
+            <select name="level" class="w-full border rounded px-3 py-2" required>
+                <option>Beginner</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+                <option>Expert</option>
+            </select>
+            <input name="price" type="number" step="0.01" placeholder="Price ($)" class="w-full border rounded px-3 py-2" required>
+            <input name="image" placeholder="Image Path (e.g. resources/course-python.jpg)" class="w-full border rounded px-3 py-2" required>
+            <div class="flex space-x-2">
+                <button type="submit" class="flex-1 bg-sage-green text-white py-2 rounded hover:bg-deep-teal transition">Save</button>
+                <button type="button" id="cancelForm" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400 transition">Cancel</button>
+            </div>
+        </form>
+        <div id="coursesList" class="space-y-3"></div>
+    </div>
+
+    <!-- Manage Users (جديد) -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 scroll-reveal">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-deep-teal">Manage Users</h2>
+            <button onclick="openModal('add-user-modal')" class="bg-deep-teal text-white px-4 py-2 rounded hover:bg-warm-coral transition">+ Add User</button>
+        </div>
+        <div class="flex space-x-4 mb-4">
+            <button onclick="loadUsers('student')" class="bg-soft-blue text-white px-4 py-2 rounded hover:bg-deep-teal transition">Students</button>
+            <button onclick="loadUsers('teacher')" class="bg-sage-green text-white px-4 py-2 rounded hover:bg-deep-teal transition">Teachers</button>
+            <button onclick="loadUsers('admin')" class="bg-warm-coral text-white px-4 py-2 rounded hover:bg-deep-teal transition">Admins</button>
+            <button onclick="loadUsers()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 transition">All</button>
+        </div>
+        <div id="usersList" class="space-y-3"></div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add User Modal -->
+    <div id="add-user-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-deep-teal">Add New User</h2>
+                <button onclick="closeModal('add-user-modal')" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form id="addUserForm" class="space-y-4">
+                <input name="name" placeholder="Full Name" class="w-full border rounded px-3 py-2" required>
+                <input name="email" type="email" placeholder="Email" class="w-full border rounded px-3 py-2" required>
+                <input name="password" type="password" placeholder="Password" class="w-full border rounded px-3 py-2" required>
+                <select name="role" class="w-full border rounded px-3 py-2" required>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <div class="flex space-x-2 pt-4">
+                    <button type="submit" class="flex-1 bg-deep-teal text-white py-2 rounded hover:bg-warm-coral transition">Add User</button>
+                    <button type="button" onclick="closeModal('add-user-modal')" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400 transition">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-deep-teal text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2024 Scola Educational Platform. Platform management and analytics dashboard.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        /* ====== أرقام ديناميكية ====== */
+        async function loadStats(){
+            const res = await fetch('api/stats.php');
+            const data = await res.json();
+            document.getElementById('studentsCount').textContent = data.students;
+            document.getElementById('teachersCount').textContent = data.teachers;
+            document.getElementById('coursesCount').textContent = data.courses;
+            document.getElementById('revenueCount').textContent = '$' + data.revenue;
+            // ملء الـ stats section
+            document.getElementById('statsSection').innerHTML = `
+                <div class="metric-card scroll-reveal">
+                    <div class="flex items-center justify-between mb-4">
+                        <div><div class="text-3xl font-bold text-warm-coral">${data.students}</div><div class="text-gray-600">Total Students</div></div>
+                        <div class="text-3xl">👥</div>
+                    </div>
+                </div>
+                <div class="metric-card scroll-reveal">
+                    <div class="flex items-center justify-between mb-4">
+                        <div><div class="text-3xl font-bold text-sage-green">${data.teachers}</div><div class="text-gray-600">Active Teachers</div></div>
+                        <div class="text-3xl">👨‍🏫</div>
+                    </div>
+                </div>
+                <div class="metric-card scroll-reveal">
+                    <div class="flex items-center justify-between mb-4">
+                        <div><div class="text-3xl font-bold text-soft-blue">${data.courses}</div><div class="text-gray-600">Courses Available</div></div>
+                        <div class="text-3xl">📚</div>
+                    </div>
+                </div>
+                <div class="revenue-card scroll-reveal">
+                    <div class="flex items-center justify-between mb-4">
+                        <div><div class="text-3xl font-bold">$${data.revenue}</div><div class="text-sm opacity-90">Monthly Revenue</div></div>
+                        <div class="text-3xl">💰</div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <span class="text-white font-semibold">+23.1%</span>
+                        <span class="text-white opacity-75 ml-1">vs last month</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* ====== Manage Courses ====== */
+        async function loadCourses(){
+            const res = await fetch('api/courses.php');
+            const data = await res.json();
+            const list = document.getElementById('coursesList');
+            list.innerHTML = '';
+            data.forEach(c=>{
+                list.innerHTML += `
+                    <div class="card-hover border border-gray-200 rounded-xl p-4 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <img src="${c.image}" alt="${c.title}" class="w-12 h-12 rounded object-cover">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">${c.title}</h3>
+                                <p class="text-sm text-gray-600">${c.level} • $${c.price}</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editCourse(${c.id})" class="text-blue-600 hover:underline">Edit</button>
+                            <button onclick="deleteCourse(${c.id})" class="text-red-600 hover:underline">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function deleteCourse(id){
+            if(!confirm('Delete this course?')) return;
+            await fetch(`api/courses.php?id=${id}`, {method:'DELETE'});
+            loadCourses();
+        }
+
+        async function editCourse(id){
+            const res = await fetch('api/courses.php');
+            const data = await res.json();
+            const c = data.find(x=>x.id==id);
+            Object.keys(c).forEach(k=> document.querySelector(`[name="${k}"]`).value = c[k]);
+            document.getElementById('courseForm').classList.remove('hidden');
+        }
+
+        document.getElementById('courseForm').addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            const id = e.target.id.value;
+            const data = Object.fromEntries(new FormData(e.target));
+            const method = id ? 'PUT' : 'POST';
+            await fetch('api/courses.php', {
+                method,
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(data)
+            });
+            e.target.reset();
+            e.target.classList.add('hidden');
+            loadCourses();
+        });
+
+        document.getElementById('addCourseBtn').onclick  = ()=> {
+            document.getElementById('courseForm').classList.toggle('hidden');
+            document.getElementById('courseForm').reset();
+        };
+        document.getElementById('cancelForm').onclick = ()=> {
+            document.getElementById('courseForm').classList.add('hidden');
+        };
+
+        /* ====== Manage Users ====== */
+        async function loadUsers(role = ''){
+            const res = await fetch(`api/users.php${role ? '?role='+role : ''}`);
+            const data = await res.json();
+            if (!Array.isArray(data)) {
+                console.warn('Users API returned non-array:', data);
+                document.getElementById('usersList').innerHTML = '<p class="text-gray-500 text-center py-8">No users found.</p>';
+                return;
+            }
+            const list = document.getElementById('usersList');
+            list.innerHTML = '';
+            data.forEach(u=>{
+                list.innerHTML += `
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                        <div class="flex items-center space-x-3">
+                            <div class="user-avatar bg-${u.role==='admin'?'warm-coral':u.role==='teacher'?'sage-green':'soft-blue'}">${u.name[0]}</div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">${u.name}</h3>
+                                <p class="text-sm text-gray-600">${u.email} • ${u.role}</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editUser(${u.id})" class="text-blue-600 hover:underline">Edit</button>
+                            <button onclick="deleteUser(${u.id})" class="text-red-600 hover:underline">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function deleteUser(id){
+            if(!confirm('Delete this user?')) return;
+            await fetch(`api/users.php?id=${id}`, {method:'DELETE'});
+            loadUsers();
+        }
+
+        async function editUser(id){
+            const res = await fetch(`api/users.php`);
+            const data = await res.json();
+            const u = data.find(x=>x.id==id);
+            const name = prompt('Edit Name:', u.name);
+            const email = prompt('Edit Email:', u.email);
+            const role = prompt('Edit Role (student/teacher/admin):', u.role);
+            if(!name || !email || !role) return;
+            await fetch('api/users.php', {
+                method: 'PUT',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({id, name, email, role})
+            });
+            loadUsers();
+        }
+
+        document.getElementById('addUserForm').addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            await fetch('api/users.php', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(data)
+            });
+            e.target.reset();
+            closeModal('add-user-modal');
+            loadUsers();
+        });
+
+        /* ====== Modals ====== */
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        /* ====== Logout ====== */
+        function logout() {
+            localStorage.removeItem('user');
+            location = 'login.html';
+        }
+
+        /* ====== Initial Load ====== */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadCourses();
+            loadUsers(); // كل اليوزرز أول ما نفتح
+        });
+    </script>
+
+</body>
+</html>

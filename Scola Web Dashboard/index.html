@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scola - Learn Coding from Age 7 | Educational Platform</title>
+    <meta name="description" content="Scola is an innovative educational platform teaching coding and programming to students from age 7 and up. Learn Python, JavaScript, web development, and AI through interactive courses.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/splitting@1.0.6/dist/splitting.css">
+    <script src="https://unpkg.com/splitting@1.0.6/dist/splitting.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-teal': '#0D4F4F',
+                        'warm-coral': '#FF6B6B',
+                        'soft-lavender': '#A8A8FF',
+                        'sage-green': '#8FBC8F',
+                        'warm-beige': '#F5F5DC',
+                        'golden-yellow': '#FFD700',
+                        'soft-blue': '#87CEEB'
+                    },
+                    fontFamily: {
+                        'display': ['Inter', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .logo-img {
+            height: 7rem; /* تقدر تغيّره حسب حجم اللوجو */
+            padding-top: 10px;
+            width: auto;
+            margin: 0 auto 1.5rem; /* توسيط أفقي + مسافة تحت */
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); /* ظل خفيف حواليه */
+        }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #0D4F4F 0%, #8FBC8F 100%);
+        }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, #FF6B6B, #A8A8FF, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B6B, #A8A8FF);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+        }
+        
+        .code-preview {
+            background: #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .feature-icon {
+            background: linear-gradient(135deg, #A8A8FF, #87CEEB);
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        
+        .stats-counter {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #FF6B6B;
+        }
+        
+        .parallax-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #FF6B6B;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 20px rgba(255, 107, 107, 0.3); }
+            to { box-shadow: 0 0 40px rgba(255, 107, 107, 0.6); }
+        }
+    </style>
+</head>
+<body class="font-display bg-gray-50">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <!-- REPLACE: text logo with image logo -->
+                    <img src="resources/logo.png" alt="Scola Logo" class="logo-img">
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#courses" class="nav-link text-gray-700 hover:text-deep-teal">Courses</a>
+                    <a href="#features" class="nav-link text-gray-700 hover:text-deep-teal">Features</a>
+                    <a href="#about" class="nav-link text-gray-700 hover:text-deep-teal">About</a>
+                   <!---- <a href="student-dashboard.html" class="nav-link text-gray-700 hover:text-deep-teal">Student Portal</a>
+                    <a href="teacher-dashboard.html" class="nav-link text-gray-700 hover:text-deep-teal">Teachers</a>-->
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!--<a href="admin-dashboard.html" class="text-gray-700 hover:text-deep-teal">Admin</a>-->
+                    <a href="login.html" class="btn-primary text-white px-6 py-2 rounded-full font-medium">
+                        Login</a>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-bg min-h-screen flex items-center relative overflow-hidden pt-16">
+        <div id="particles-bg" class="parallax-bg"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
+            <div class="text-white">
+                <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+                    Learn <span class="text-gradient">Coding</span> from
+                    <span id="typed-text"></span>
+                </h1>
+                <p class="text-xl lg:text-2xl mb-8 text-gray-200 leading-relaxed">
+                    Join thousands of students aged 7+ mastering programming through interactive courses, 
+                    hands-on projects, and collaborative learning experiences.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button class="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg pulse-glow">
+                        Start Learning Free
+                    </button>
+                    <button class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-deep-teal transition-all duration-300">
+                        Watch Demo
+                    </button>
+                </div>
+                <div class="mt-12 grid grid-cols-3 gap-8 text-center">
+                    <div>
+                        <div class="stats-counter" data-target="50000">0</div>
+                        <p class="text-gray-200">Students</p>
+                    </div>
+                    <div>
+                        <div class="stats-counter" data-target="100">0</div>
+                        <p class="text-gray-200">Courses</p>
+                    </div>
+                    <div>
+                        <div class="stats-counter" data-target="95">0</div>
+                        <p class="text-gray-200">Success Rate</p>
+                    </div>
+                </div>
+            </div>
+            <div class="relative">
+                <img src="resources/hero-main.jpg" alt="Students learning coding" class="rounded-2xl shadow-2xl floating-animation">
+                <div class="absolute -top-4 -right-4 bg-golden-yellow text-deep-teal px-4 py-2 rounded-full font-bold text-sm">
+                    🔥 Most Popular
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Courses Section -->
+    <section id="courses" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl lg:text-5xl font-bold text-deep-teal mb-6">
+                    Explore Our Courses
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    From basic programming concepts to advanced AI development, 
+                    we have courses perfectly tailored for every age and skill level.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="card-hover bg-white rounded-2xl shadow-lg overflow-hidden scroll-reveal">
+                    <img src="resources/course-python.jpg" alt="Python Programming" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-soft-blue text-deep-teal px-3 py-1 rounded-full text-sm font-medium">Beginner</span>
+                            <span class="text-2xl font-bold text-warm-coral">$29</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-deep-teal mb-2">Python Programming</h3>
+                        <p class="text-gray-600 mb-4">Master Python fundamentals through fun projects and interactive exercises.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <span>👥 12,450 students</span>
+                            </div>
+                            <button class="bg-deep-teal text-white px-4 py-2 rounded-lg hover:bg-warm-coral transition-colors">
+                                Enroll Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-hover bg-white rounded-2xl shadow-lg overflow-hidden scroll-reveal">
+                    <img src="resources/course-web.jpg" alt="Web Development" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-sage-green text-white px-3 py-1 rounded-full text-sm font-medium">Intermediate</span>
+                            <span class="text-2xl font-bold text-warm-coral">$39</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-deep-teal mb-2">Web Development</h3>
+                        <p class="text-gray-600 mb-4">Build amazing websites with HTML, CSS, and JavaScript from scratch.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <span>👥 8,920 students</span>
+                            </div>
+                            <button class="bg-deep-teal text-white px-4 py-2 rounded-lg hover:bg-warm-coral transition-colors">
+                                Enroll Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-hover bg-white rounded-2xl shadow-lg overflow-hidden scroll-reveal">
+                    <img src="resources/course-game.jpg" alt="Game Development" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-golden-yellow text-deep-teal px-3 py-1 rounded-full text-sm font-medium">Advanced</span>
+                            <span class="text-2xl font-bold text-warm-coral">$49</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-deep-teal mb-2">Game Development</h3>
+                        <p class="text-gray-600 mb-4">Create your own games using Unity and advanced programming concepts.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <span>👥 5,670 students</span>
+                            </div>
+                            <button class="bg-deep-teal text-white px-4 py-2 rounded-lg hover:bg-warm-coral transition-colors">
+                                Enroll Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-hover bg-white rounded-2xl shadow-lg overflow-hidden scroll-reveal">
+                    <img src="resources/course-ai.jpg" alt="AI & Machine Learning" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-soft-lavender text-white px-3 py-1 rounded-full text-sm font-medium">Expert</span>
+                            <span class="text-2xl font-bold text-warm-coral">$59</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-deep-teal mb-2">AI & Machine Learning</h3>
+                        <p class="text-gray-600 mb-4">Explore the future of technology with artificial intelligence and ML.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <span>👥 3,240 students</span>
+                            </div>
+                            <button class="bg-deep-teal text-white px-4 py-2 rounded-lg hover:bg-warm-coral transition-colors">
+                                Enroll Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl lg:text-5xl font-bold text-deep-teal mb-6">
+                    Why Choose Scola?
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Our platform combines cutting-edge technology with proven educational methods 
+                    to create the ultimate learning experience for young coders.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="text-center scroll-reveal">
+                    <div class="feature-icon">
+                        <span class="text-3xl">🎮</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-deep-teal mb-3">Gamified Learning</h3>
+                    <p class="text-gray-600">Earn badges, complete challenges, and level up your coding skills through engaging game-like experiences.</p>
+                </div>
+                
+                <div class="text-center scroll-reveal">
+                    <div class="feature-icon">
+                        <span class="text-3xl">👥</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-deep-teal mb-3">Collaborative Projects</h3>
+                    <p class="text-gray-600">Work with peers on real-world projects, building teamwork skills while creating amazing applications.</p>
+                </div>
+                
+                <div class="text-center scroll-reveal">
+                    <div class="feature-icon">
+                        <span class="text-3xl">🤖</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-deep-teal mb-3">AI-Powered Feedback</h3>
+                    <p class="text-gray-600">Get instant, personalized feedback on your code with our intelligent assessment system.</p>
+                </div>
+                
+                <div class="text-center scroll-reveal">
+                    <div class="feature-icon">
+                        <span class="text-3xl">📱</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-deep-teal mb-3">Mobile Learning</h3>
+                    <p class="text-gray-600">Learn anywhere, anytime with our mobile-optimized platform that works on all devices.</p>
+                </div>
+                
+                <div class="text-center scroll-reveal">
+                    <div class="feature-icon">
+                        <span class="text-3xl">🏆</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-deep-teal mb-3">Certification</h3>
+                    <p class="text-gray-600">Earn industry-recognized certificates that showcase your programming skills to employers.</p>
+                </div>
+                
+                <div class="text-center scroll-reveal">
+                    <div class="feature-icon">
+                        <span class="text-3xl">🎯</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-deep-teal mb-3">Personalized Path</h3>
+                    <p class="text-gray-600">Adaptive learning technology creates a custom curriculum based on your pace and interests.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Code Preview -->
+    <section class="py-20 bg-deep-teal text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="scroll-reveal">
+                    <h2 class="text-4xl lg:text-5xl font-bold mb-6">
+                        Learn by Doing
+                    </h2>
+                    <p class="text-xl text-gray-200 mb-8">
+                        Our interactive coding environment lets you write, test, and debug code in real-time. 
+                        See your creations come to life instantly!
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-2 h-2 bg-warm-coral rounded-full"></div>
+                            <span>Real-time code execution and feedback</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-2 h-2 bg-warm-coral rounded-full"></div>
+                            <span>Step-by-step debugging tools</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-2 h-2 bg-warm-coral rounded-full"></div>
+                            <span>Collaborative coding sessions</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scroll-reveal">
+                    <div class="code-preview p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="flex space-x-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            </div>
+                            <span class="ml-4 text-gray-400 text-sm">my_first_game.py</span>
+                        </div>
+                        <pre class="text-green-400 font-mono text-sm leading-relaxed"><code># Welcome to Python Programming!
+import turtle
+
+# Create a turtle named Timmy
+timmy = turtle.Turtle()
+timmy.shape("turtle")
+timmy.color("blue")
+
+# Draw a colorful spiral
+for i in range(100):
+    timmy.forward(i * 2)
+    timmy.right(91)
+    if i % 10 == 0:
+        timmy.color("red")
+    elif i % 10 == 5:
+        timmy.color("green")
+
+print("Amazing! You just created art with code!")
+                        </code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Student Showcase -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl lg:text-5xl font-bold text-deep-teal mb-6">
+                    Student Success Stories
+                </h2>
+                <p class="text-xl text-gray-600">
+                    Meet some of our amazing students and their incredible projects
+                </p>
+            </div>
+            
+            <div class="splide" id="student-showcase">
+                <div class="splide__track">
+                    <ul class="splide__list">
+                        <li class="splide__slide">
+                            <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                                <img src="resources/coding-kids-1.jpg" alt="Student project" class="w-full h-48 object-cover rounded-lg mb-6">
+                                <h3 class="text-xl font-bold text-deep-teal mb-2">Emma, Age 12</h3>
+                                <p class="text-gray-600 mb-4">"I created my first mobile app after just 3 months with Scola!"</p>
+                                <div class="flex justify-center space-x-2">
+                                    <span class="bg-warm-coral text-white px-3 py-1 rounded-full text-sm">Python</span>
+                                    <span class="bg-soft-blue text-white px-3 py-1 rounded-full text-sm">Mobile App</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="splide__slide">
+                            <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                                <img src="resources/coding-kids-2.jpg" alt="Student project" class="w-full h-48 object-cover rounded-lg mb-6">
+                                <h3 class="text-xl font-bold text-deep-teal mb-2">Alex, Age 15</h3>
+                                <p class="text-gray-600 mb-4">"Built an AI chatbot that helps students with homework!"</p>
+                                <div class="flex justify-center space-x-2">
+                                    <span class="bg-soft-lavender text-white px-3 py-1 rounded-full text-sm">AI/ML</span>
+                                    <span class="bg-sage-green text-white px-3 py-1 rounded-full text-sm">JavaScript</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="splide__slide">
+                            <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                                <img src="resources/teacher-class.jpg" alt="Student project" class="w-full h-48 object-cover rounded-lg mb-6">
+                                <h3 class="text-xl font-bold text-deep-teal mb-2">Maya, Age 10</h3>
+                                <p class="text-gray-600 mb-4">"Designed and coded my own video game with custom graphics!"</p>
+                                <div class="flex justify-center space-x-2">
+                                    <span class="bg-golden-yellow text-deep-teal px-3 py-1 rounded-full text-sm">Game Dev</span>
+                                    <span class="bg-warm-coral text-white px-3 py-1 rounded-full text-sm">Scratch</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-r from-warm-coral to-soft-lavender text-white">
+        <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 scroll-reveal">
+            <h2 class="text-4xl lg:text-5xl font-bold mb-6">
+                Ready to Start Your Coding Journey?
+            </h2>
+            <p class="text-xl mb-8 opacity-90">
+                Join 50,000+ students already learning with Scola. Start with our free trial and 
+                discover the joy of creating with code.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-white text-warm-coral px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform">
+                    Start Free Trial
+                </button>
+                <button class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-warm-coral transition-all duration-300">
+                    Schedule Demo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-deep-teal text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <!-- REPLACE: text logo with image logo -->
+                    <a href="index.html" class="inline-block mb-4">
+                        <img src="resources/logo.png" alt="Academy Logo" class="logo">
+
+                    </a>
+                    <p class="text-gray-300 mb-4">
+                        Empowering the next generation of innovators through accessible, 
+                        engaging coding education for students of all ages.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Courses</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Python Programming</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Web Development</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Game Development</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">AI & Machine Learning</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Resources</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Student Dashboard</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Teacher Portal</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Community</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Connect</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-warm-coral transition-colors">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-600 mt-8 pt-8 text-center text-gray-300">
+                <p>&copy; 2024 Scola Educational Platform. All rights reserved. Made with ❤️ for young innovators.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="main.js"></script>
+</body>
+</html>

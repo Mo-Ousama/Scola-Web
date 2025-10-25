@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - Scola</title>
+    <meta name="description" content="Manage your classes, track student progress, and create engaging coding lessons with Scola's teacher dashboard.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-teal': '#0D4F4F',
+                        'warm-coral': '#FF6B6B',
+                        'soft-lavender': '#A8A8FF',
+                        'sage-green': '#8FBC8F',
+                        'warm-beige': '#F5F5DC',
+                        'golden-yellow': '#FFD700',
+                        'soft-blue': '#87CEEB'
+                    },
+                    fontFamily: {
+                        'display': ['Inter', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .dashboard-bg {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .drag-drop-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .drag-drop-area.dragover {
+            border-color: #0D4F4F;
+            background-color: #f0f9ff;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #FF6B6B;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="font-display dashboard-bg min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-deep-teal">Scola</a>
+                    <span class="ml-4 text-gray-500">Teacher Dashboard</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button class="text-gray-500 hover:text-deep-teal relative">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7H4l5-5v5z"></path>
+                            </svg>
+                            <span class="notification-badge">3</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-soft-lavender rounded-full flex items-center justify-center text-white font-bold">
+                            S
+                        </div>
+                        <span class="text-gray-700 font-medium">Sarah Chen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Section -->
+        <div class="mb-8 scroll-reveal">
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-deep-teal mb-2">Welcome back, Sarah! 👋</h1>
+                        <p class="text-gray-600">You have 3 classes to teach today. Let's make learning amazing!</p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-warm-coral">127</div>
+                            <div class="text-sm text-gray-500">Students</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-sage-green">4</div>
+                            <div class="text-sm text-gray-500">Classes</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-soft-blue">98%</div>
+                            <div class="text-sm text-gray-500">Engagement</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Left Column - Classes & Analytics -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Quick Actions</h2>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <button onclick="openModal('create-assignment')" class="card-hover bg-warm-coral text-white p-4 rounded-xl text-center">
+                            <div class="text-2xl mb-2">📝</div>
+                            <div class="font-semibold">Create Assignment</div>
+                        </button>
+                        <button onclick="openModal('upload-resource')" class="card-hover bg-sage-green text-white p-4 rounded-xl text-center">
+                            <div class="text-2xl mb-2">📁</div>
+                            <div class="font-semibold">Upload Resource</div>
+                        </button>
+                        <button onclick="openModal('start-live-class')" class="card-hover bg-soft-blue text-white p-4 rounded-xl text-center">
+                            <div class="text-2xl mb-2">🎥</div>
+                            <div class="font-semibold">Start Live Class</div>
+                        </button>
+                        <button onclick="openModal('grade-assignments')" class="card-hover bg-soft-lavender text-white p-4 rounded-xl text-center">
+                            <div class="text-2xl mb-2">✅</div>
+                            <div class="font-semibold">Grade Work</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Class Overview -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-deep-teal">My Classes</h2>
+                        <button class="text-warm-coral hover:text-deep-teal font-medium">View All</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Python Class -->
+                        <div class="card-hover border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-warm-coral rounded-lg flex items-center justify-center text-white font-bold">
+                                        PY
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-800">Python Programming - Grade 8</h3>
+                                        <p class="text-sm text-gray-600">32 students • Next class: Today 2:00 PM</p>
+                                    </div>
+                                </div>
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Active</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <div class="text-lg font-bold text-warm-coral">94%</div>
+                                    <div class="text-xs text-gray-500">Attendance</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-bold text-sage-green">87%</div>
+                                    <div class="text-xs text-gray-500">Avg Grade</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-bold text-soft-blue">12</div>
+                                    <div class="text-xs text-gray-500">Assignments</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Web Development Class -->
+                        <div class="card-hover border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-soft-blue rounded-lg flex items-center justify-center text-white font-bold">
+                                        WD
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-800">Web Development - Grade 9</h3>
+                                        <p class="text-sm text-gray-600">28 students • Next class: Tomorrow 10:00 AM</p>
+                                    </div>
+                                </div>
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Scheduled</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <div class="text-lg font-bold text-warm-coral">89%</div>
+                                    <div class="text-xs text-gray-500">Attendance</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-bold text-sage-green">82%</div>
+                                    <div class="text-xs text-gray-500">Avg Grade</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-bold text-soft-blue">8</div>
+                                    <div class="text-xs text-gray-500">Assignments</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Game Development Class -->
+                        <div class="card-hover border border-gray-200 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-golden-yellow rounded-lg flex items-center justify-center text-deep-teal font-bold">
+                                        GD
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-800">Game Development - Grade 10</h3>
+                                        <p class="text-sm text-gray-600">25 students • Next class: Friday 1:00 PM</p>
+                                    </div>
+                                </div>
+                                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">Planning</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <div class="text-lg font-bold text-warm-coral">92%</div>
+                                    <div class="text-xs text-gray-500">Attendance</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-bold text-sage-green">90%</div>
+                                    <div class="text-xs text-gray-500">Avg Grade</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-bold text-soft-blue">5</div>
+                                    <div class="text-xs text-gray-500">Assignments</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Progress Analytics -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Class Performance</h2>
+                    <div id="performance-chart" style="height: 300px;"></div>
+                </div>
+
+                <!-- Recent Submissions -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-deep-teal">Recent Submissions</h2>
+                        <button class="text-warm-coral hover:text-deep-teal font-medium">View All</button>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="student-avatar bg-warm-coral">AJ</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Alex Johnson</h3>
+                                    <p class="text-sm text-gray-600">Python Project 3 • Grade 8</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-500">2 hours ago</span>
+                                <button class="bg-sage-green text-white px-3 py-1 rounded-lg text-sm hover:bg-deep-teal transition-colors">
+                                    Grade
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="student-avatar bg-soft-blue">EM</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Emma Martinez</h3>
+                                    <p class="text-sm text-gray-600">Web Design Challenge • Grade 9</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-500">4 hours ago</span>
+                                <button class="bg-sage-green text-white px-3 py-1 rounded-lg text-sm hover:bg-deep-teal transition-colors">
+                                    Grade
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="student-avatar bg-soft-lavender">MJ</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Maya Johnson</h3>
+                                    <p class="text-sm text-gray-600">Game Concept • Grade 10</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-500">6 hours ago</span>
+                                <button class="bg-sage-green text-white px-3 py-1 rounded-lg text-sm hover:bg-deep-teal transition-colors">
+                                    Grade
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Resources & Tools -->
+            <div class="space-y-8">
+                <!-- Resource Library -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-deep-teal">Resource Library</h2>
+                        <button onclick="openModal('upload-resource')" class="text-warm-coral hover:text-deep-teal">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl">📄</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Python Basics.pdf</h3>
+                                    <p class="text-sm text-gray-600">2.3 MB • Uploaded 2 days ago</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-deep-teal">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl">🎥</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">HTML Tutorial.mp4</h3>
+                                    <p class="text-sm text-gray-600">45.2 MB • Uploaded 1 week ago</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-deep-teal">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl">💻</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">Code Examples.zip</h3>
+                                    <p class="text-sm text-gray-600">12.8 MB • Uploaded 3 days ago</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-deep-teal">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Performance Heatmap -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Student Engagement</h2>
+                    <div id="heatmap-chart" style="height: 200px;"></div>
+                </div>
+
+                <!-- Communication Hub -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Messages</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="student-avatar bg-warm-coral">AJ</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800">Alex Johnson</h3>
+                                <p class="text-sm text-gray-600">Question about Python lesson...</p>
+                            </div>
+                            <span class="text-xs text-gray-500">2m</span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="student-avatar bg-soft-blue">EM</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800">Emma Martinez</h3>
+                                <p class="text-sm text-gray-600">Need help with CSS Grid...</p>
+                            </div>
+                            <span class="text-xs text-gray-500">15m</span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="student-avatar bg-soft-lavender">MJ</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800">Maya Johnson</h3>
+                                <p class="text-sm text-gray-600">Game development question...</p>
+                            </div>
+                            <span class="text-xs text-gray-500">1h</span>
+                        </div>
+                    </div>
+                    <button class="w-full mt-4 bg-deep-teal text-white py-2 rounded-lg hover:bg-warm-coral transition-colors">
+                        View All Messages
+                    </button>
+                </div>
+
+                <!-- Class Schedule -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
+                    <h2 class="text-xl font-bold text-deep-teal mb-6">Today's Schedule</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3 p-3 border-l-4 border-warm-coral bg-red-50">
+                            <div class="text-sm font-bold text-warm-coral">2:00 PM</div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Python Programming</h3>
+                                <p class="text-sm text-gray-600">Grade 8 • Room 205</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-3 border-l-4 border-soft-blue bg-blue-50">
+                            <div class="text-sm font-bold text-soft-blue">4:00 PM</div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Web Development</h3>
+                                <p class="text-sm text-gray-600">Grade 9 • Room 203</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Create Assignment Modal -->
+    <div id="create-assignment" class="modal">
+        <div class="modal-content p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-deep-teal">Create Assignment</h2>
+                <button onclick="closeModal('create-assignment')" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assignment Title</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-coral" placeholder="Enter assignment title">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Class</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-coral">
+                        <option>Python Programming - Grade 8</option>
+                        <option>Web Development - Grade 9</option>
+                        <option>Game Development - Grade 10</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-coral" placeholder="Describe the assignment..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-coral">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Points</label>
+                        <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-coral" placeholder="100">
+                    </div>
+                </div>
+                
+                <div class="flex space-x-4 pt-4">
+                    <button type="submit" class="flex-1 bg-warm-coral text-white py-2 rounded-lg hover:bg-deep-teal transition-colors">
+                        Create Assignment
+                    </button>
+                    <button type="button" onclick="closeModal('create-assignment')" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Resource Modal -->
+    <div id="upload-resource" class="modal">
+        <div class="modal-content p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-deep-teal">Upload Resource</h2>
+                <button onclick="closeModal('upload-resource')" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="drag-drop-area p-8 text-center mb-6">
+                <div class="text-4xl mb-4">📁</div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Drag and drop files here</h3>
+                <p class="text-gray-500 mb-4">or click to browse</p>
+                <input type="file" class="hidden" id="file-input" multiple>
+                <button onclick="document.getElementById('file-input').click()" class="bg-sage-green text-white px-6 py-2 rounded-lg hover:bg-deep-teal transition-colors">
+                    Choose Files
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Resource Title</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green" placeholder="Enter resource title">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green">
+                        <option>Video Tutorial</option>
+                        <option>PDF Document</option>
+                        <option>Code Examples</option>
+                        <option>Presentation</option>
+                        <option>Exercise</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green" placeholder="Describe the resource..."></textarea>
+                </div>
+                
+                <div class="flex space-x-4 pt-4">
+                    <button class="flex-1 bg-sage-green text-white py-2 rounded-lg hover:bg-deep-teal transition-colors">
+                        Upload Resource
+                    </button>
+                    <button onclick="closeModal('upload-resource')" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-deep-teal text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2024 Scola Educational Platform. Empowering educators worldwide.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Teacher Dashboard JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            initScrollReveal();
+            initPerformanceChart();
+            initHeatmapChart();
+            setupDragAndDrop();
+        });
+
+        // Scroll reveal animations
+        function initScrollReveal() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Performance chart
+        function initPerformanceChart() {
+            const chart = echarts.init(document.getElementById('performance-chart'));
+            
+            const option = {
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['Attendance', 'Average Grade', 'Engagement']
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6']
+                },
+                yAxis: {
+                    type: 'value',
+                    max: 100
+                },
+                series: [
+                    {
+                        name: 'Attendance',
+                        type: 'line',
+                        data: [92, 94, 89, 96, 94, 98],
+                        itemStyle: { color: '#FF6B6B' },
+                        smooth: true
+                    },
+                    {
+                        name: 'Average Grade',
+                        type: 'line',
+                        data: [78, 82, 85, 87, 84, 89],
+                        itemStyle: { color: '#8FBC8F' },
+                        smooth: true
+                    },
+                    {
+                        name: 'Engagement',
+                        type: 'line',
+                        data: [85, 88, 82, 90, 87, 92],
+                        itemStyle: { color: '#87CEEB' },
+                        smooth: true
+                    }
+                ]
+            };
+            
+            chart.setOption(option);
+            
+            // Resize chart on window resize
+            window.addEventListener('resize', () => {
+                chart.resize();
+            });
+        }
+
+        // Heatmap chart
+        function initHeatmapChart() {
+            const chart = echarts.init(document.getElementById('heatmap-chart'));
+            
+            const hours = ['12a', '1a', '2a', '3a', '4a', '5a', '6a', '7a', '8a', '9a', '10a', '11a',
+                          '12p', '1p', '2p', '3p', '4p', '5p', '6p', '7p', '8p', '9p', '10p', '11p'];
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            
+            const data = [];
+            for (let i = 0; i < 7; i++) {
+                for (let j = 0; j < 24; j++) {
+                    data.push([j, i, Math.floor(Math.random() * 100)]);
+                }
+            }
+            
+            const option = {
+                tooltip: {
+                    position: 'top'
+                },
+                grid: {
+                    height: '50%',
+                    top: '10%'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: hours,
+                    splitArea: {
+                        show: true
+                    }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: days,
+                    splitArea: {
+                        show: true
+                    }
+                },
+                visualMap: {
+                    min: 0,
+                    max: 100,
+                    calculable: true,
+                    orient: 'horizontal',
+                    left: 'center',
+                    bottom: '15%',
+                    inRange: {
+                        color: ['#e8f4f8', '#0D4F4F']
+                    }
+                },
+                series: [{
+                    name: 'Student Activity',
+                    type: 'heatmap',
+                    data: data,
+                    label: {
+                        show: false
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+            
+            chart.setOption(option);
+            
+            window.addEventListener('resize', () => {
+                chart.resize();
+            });
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Drag and drop functionality
+        function setupDragAndDrop() {
+            const dropArea = document.querySelector('.drag-drop-area');
+            const fileInput = document.getElementById('file-input');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function highlight(e) {
+                dropArea.classList.add('dragover');
+            }
+            
+            function unhighlight(e) {
+                dropArea.classList.remove('dragover');
+            }
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+            
+            function handleFiles(files) {
+                ([...files]).forEach(uploadFile);
+            }
+            
+            function uploadFile(file) {
+                console.log('Uploading file:', file.name);
+                // Here you would typically send the file to your server
+                showNotification(`File "${file.name}" ready for upload!`, 'success');
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            } text-white`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            anime({
+                targets: notification,
+                translateX: [300, 0],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutCubic'
+            });
+            
+            setTimeout(() => {
+                anime({
+                    targets: notification,
+                    translateX: 300,
+                    opacity: 0,
+                    duration: 300,
+                    easing: 'easeInCubic',
+                    complete: () => {
+                        document.body.removeChild(notification);
+                    }
+                });
+            }, 3000);
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Grade buttons functionality
+        document.querySelectorAll('button').forEach(button => {
+            if (button.textContent.includes('Grade')) {
+                button.addEventListener('click', function() {
+                    showNotification('Opening grading interface...', 'success');
+                    setTimeout(() => {
+                        showNotification('Grading system ready!', 'success');
+                    }, 1000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

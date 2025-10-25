@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scola - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <style>
+        :root {
+            --deep-teal: #0D4F4F;
+            --warm-coral: #FF6B6B;
+            --soft-lavender: #A8A8FF;
+            --sage-green: #8FBC8F;
+            --golden-yellow: #FFD700;
+            --soft-blue: #87CEEB;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--deep-teal) 0%, var(--sage-green) 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, var(--warm-coral), var(--soft-lavender));
+            transition: all 0.3s ease;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+        }
+        .input-glass {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .input-glass::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .input-glass:focus {
+            border-color: var(--warm-coral);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+            outline: none;
+        }
+        .logo-center {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 2.25rem;
+            background: linear-gradient(135deg, var(--warm-coral), var(--golden-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            letter-spacing: -1px;
+        }
+        .logo-img {
+        height: 9rem; /* تقدر تغيّره حسب حجم اللوجو */
+        width: auto;
+        margin: 0 auto 1.5rem; /* توسيط أفقي + مسافة تحت */
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); /* ظل خفيف حواليه */
+        }
+        /* لون خلفية الـ Options */
+        select option {
+            background: var(--deep-teal) !important; /* خلفية داكنة */
+            color: white !important; /* نص أبيض */
+            padding: 8px; /* مسافة داخلية */
+        }
+
+        /* Hover effect للـ Options (لو المتصفح سمح) */
+        select option:hover {
+            background: var(--warm-coral) !important; /* لون مختلف لما تدي Hover */
+        }
+        /* أنيميشن خلفية particles */
+        #particles-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center relative overflow-hidden">
+
+<!-- خلفية متحرّكة (نفس particles بتاعت الـ dashboard) -->
+<div id="particles-bg"></div>
+
+<!-- كارد تسجيل الدخول -->
+<div class="glass-card p-8 w-full max-w-md z-10">
+    <!-- اللوجو فـ النص -->
+    <img src="resources/logo.png" alt="Scola Logo" class="logo-img">
+    <h2 class="text-white text-xl font-semibold text-center mb-6">Welcome Back</h2>
+
+    <form id="loginForm" class="space-y-5">
+        <input name="email" type="email" placeholder="Email" class="input-glass w-full px-4 py-3" required>
+        <input name="password" type="password" placeholder="Password" class="input-glass w-full px-4 py-3" required>
+        <select name="role" class="input-glass w-full px-4 py-3" required>
+            <option value="student" style="background: var(--deep-teal); color: white;">🎓 Student</option>
+            <option value="teacher" style="background: var(--deep-teal); color: white;">👨‍🏫 Teacher</option>
+            <option value="admin" style="background: var(--deep-teal); color: white;">🔧 Admin</option>
+        </select>
+        <button type="submit" class="btn-login w-full text-white font-semibold py-3 rounded-xl">Login</button>
+        <p id="msg" class="text-red-300 text-sm text-center mt-3"></p>
+    </form>
+
+    
+</div>
+
+<!-- particles animation -->
+<script>
+// نفس كود particles بتاع الـ dashboard
+let particles = [];
+function setup() {
+    let canvas = createCanvas(windowWidth, windowHeight);
+    canvas.parent('particles-bg');
+    for (let i = 0; i < 60; i++) {
+        particles.push({
+            x: random(width),
+            y: random(height),
+            r: random(1, 4),
+            speed: random(0.2, 1),
+            angle: random(TWO_PI)
+        });
+    }
+}
+function draw() {
+    clear();
+    noStroke();
+    fill(255, 255, 255, 50);
+    for (let p of particles) {
+        ellipse(p.x, p.y, p.r * 2);
+        // حركة بطيئة
+        p.x += cos(p.angle) * p.speed;
+        p.y += sin(p.angle) * p.speed;
+        // wrap around
+        if (p.x < -10) p.x = width + 10;
+        if (p.x > width + 10) p.x = -10;
+        if (p.y < -10) p.y = height + 10;
+        if (p.y > height + 10) p.y = -10;
+    }
+}
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+}
+</script>
+
+<!-- Login Logic -->
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+    const res = await fetch('api/login.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+        localStorage.setItem('user', JSON.stringify(result.user));
+        // توجيه حسب النوع
+        if (result.user.role === 'admin')   location = 'admin-dashboard.html';
+        if (result.user.role === 'teacher') location = 'teacher-dashboard.html';
+        if (result.user.role === 'student') location = 'student-dashboard.html';
+    } else {
+        document.getElementById('msg').textContent = result.message;
+    }
+});
+</script>
+
+</body>
+</html>
