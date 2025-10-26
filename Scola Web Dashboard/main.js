@@ -419,3 +419,75 @@ window.ScolaJS = {
     toggleMobileMenu,
     debounce
 };
+// =======================
+// Python IDE Integration
+// =======================
+function initPythonIDE() {
+    const editorDiv = document.getElementById('editor');
+    if (!editorDiv) return; // Skip if IDE section not on page
+
+    // Initialize Ace Editor
+    const editor = ace.edit('editor');
+    editor.session.setMode('ace/mode/python');
+    editor.setTheme('ace/theme/monokai');
+    editor.setValue("# Write your Python code here\nprint('Hello, Scola!')");
+    editor.setFontSize(14);
+
+    // Elements
+    const runBtn = document.getElementById('run-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const loadBtn = document.getElementById('load-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const outputDiv = document.getElementById('output');
+
+    // Run Code using Piston API
+    runBtn.addEventListener('click', async () => {
+        const code = editor.getValue();
+        outputDiv.textContent = "Running your code...";
+        
+        try {
+            const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    language: "python",
+                    version: "3.10.0",
+                    files: [{content: code}]
+                })
+            });
+            const result = await response.json();
+            outputDiv.textContent = result.run.output || "(no output)";
+        } catch (error) {
+            outputDiv.textContent = "Error running code: " + error.message;
+        }
+    });
+
+    // Save Code (to localStorage)
+    saveBtn.addEventListener('click', () => {
+        localStorage.setItem('scola_python_code', editor.getValue());
+        showNotification("Code saved locally!", "success");
+    });
+
+    // Load Code
+    loadBtn.addEventListener('click', () => {
+        const savedCode = localStorage.getItem('scola_python_code');
+        if (savedCode) {
+            editor.setValue(savedCode);
+            showNotification("Loaded your saved code!", "info");
+        } else {
+            showNotification("No saved code found!", "error");
+        }
+    });
+
+    // Download Code
+    downloadBtn.addEventListener('click', () => {
+        const blob = new Blob([editor.getValue()], {type: "text/x-python"});
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "scola_code.py";
+        link.click();
+    });
+}
+
+// Initialize IDE when page loads
+document.addEventListener('DOMContentLoaded', initPythonIDE);

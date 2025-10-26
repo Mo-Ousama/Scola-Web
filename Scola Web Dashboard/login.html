@@ -147,23 +147,26 @@ function windowResized() {
 
 <!-- Login Logic -->
 <script>
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
+document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
+
     const data = Object.fromEntries(new FormData(e.target));
-    const res = await fetch('api/login.php', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-    });
-    const result = await res.json();
-    if (result.success) {
-        localStorage.setItem('user', JSON.stringify(result.user));
-        // توجيه حسب النوع
-        if (result.user.role === 'admin')   location = 'admin-dashboard.html';
-        if (result.user.role === 'teacher') location = 'teacher-dashboard.html';
-        if (result.user.role === 'student') location = 'student-dashboard.html';
+    const users = [
+        { email: 'admin@scola.com',   password: '1234', name: 'Admin',   role: 'admin' },
+        { email: 'teacher@scola.com', password: '1234', name: 'Teacher', role: 'teacher' },
+        { email: 'student@scola.com', password: '1234', name: 'Student', role: 'student' },
+    ];
+
+    const user = users.find(u => u.email === data.email && u.password === data.password);
+
+    if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+
+        if (user.role === 'admin')   location.href = 'admin-dashboard.html';
+        if (user.role === 'teacher') location.href = 'teacher-dashboard.html';
+        if (user.role === 'student') location.href = 'student-dashboard.html';
     } else {
-        document.getElementById('msg').textContent = result.message;
+        document.getElementById('msg').textContent = 'Invalid email or password';
     }
 });
 </script>
