@@ -295,41 +295,170 @@
 
                 <!-- Interactive Code Playground -->
                 <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
-                    <h2 class="text-xl font-bold text-deep-teal mb-6">Code Playground</h2>
-                    <div class="code-editor p-4 mb-4">
-                        <div class="flex items-center mb-4">
-                            <div class="flex space-x-2">
-                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                            </div>
-                            <span class="ml-4 text-gray-400 text-sm">playground.py</span>
-                        </div>
-                        <textarea id="code-input" class="w-full h-40 bg-transparent text-green-400 font-mono text-sm resize-none border-none outline-none" placeholder="# Write your code here...
-print('Hello, Scola!')
-for i in range(5):
-    print(f'Count: {i}')"></textarea>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <div class="flex space-x-2">
-                            <button id="run-code" class="bg-sage-green text-white px-4 py-2 rounded-lg hover:bg-deep-teal transition-colors">
-                                ▶ Run Code
-                            </button>
-                            <button class="bg-soft-blue text-white px-4 py-2 rounded-lg hover:bg-deep-teal transition-colors">
-                                💾 Save
-                            </button>
-                            <button class="bg-soft-lavender text-white px-4 py-2 rounded-lg hover:bg-deep-teal transition-colors">
-                                📤 Share
-                            </button>
-                        </div>
-                        <div class="text-sm text-gray-500">
-                            <span id="code-status">Ready to run</span>
-                        </div>
-                    </div>
-                    <div id="code-output" class="mt-4 p-4 bg-gray-100 rounded-lg font-mono text-sm hidden">
-                        <div class="text-gray-500 mb-2">Output:</div>
-                        <div id="output-content"></div>
-                    </div>
+                    <!-- === Python IDE Section === -->
+<section class="p-6 bg-gray-100 rounded-xl shadow-md my-6">
+  <h2 class="text-2xl font-bold mb-4">Python IDE</h2>
+
+  <!-- Code Editor -->
+  <textarea id="pythonCode" class="w-full h-60 p-3 border rounded-lg font-mono text-sm"
+    placeholder="# Write your Python code here...&#10;print('Hello, Scola!')"></textarea>
+
+  <!-- Buttons -->
+  <div class="mt-3 flex gap-3">
+    <button onclick="runPythonCode()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Run</button>
+    <button onclick="savePythonCode()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">Save</button>
+    <button onclick="loadPythonCode()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg">Load</button>
+  </div>
+
+  <!-- Output -->
+  <pre id="output" class="mt-4 bg-black text-green-400 p-3 rounded-lg h-40 overflow-auto"></pre>
+</section>
+
+<!-- Skulpt (Python-in-Browser) -->
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+
+<script>
+  function outf(text) {
+    const output = document.getElementById("output");
+    output.textContent += text;
+  }
+
+  function runPythonCode() {
+    const code = document.getElementById("pythonCode").value;
+    const output = document.getElementById("output");
+    output.textContent = ""; // Clear previous output
+
+    Sk.configure({ output: outf, read: builtinRead });
+    Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, code, true))
+      .catch(err => {
+        output.textContent = err.toString();
+      });
+  }
+
+  function builtinRead(x) {
+    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+      throw "File not found: '" + x + "'";
+    return Sk.builtinFiles["files"][x];
+  }
+
+  // Simple Save & Load using localStorage
+  function savePythonCode() {
+    const code = document.getElementById("pythonCode").value;
+    localStorage.setItem("studentCode", code);
+    alert("Code saved!");
+  }
+
+  function loadPythonCode() {
+    const saved = localStorage.getItem("studentCode");
+    if (saved) {
+      document.getElementById("pythonCode").value = saved;
+      alert("Code loaded!");
+    } else {
+      alert("No saved code found!");
+    }
+  }
+</script>
+<!-- === Previous Projects Section === -->
+<section class="p-6 bg-white rounded-xl shadow-md my-6">
+  <h2 class="text-2xl font-bold mb-4">Previous Projects</h2>
+  <div id="projectsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</section>
+<script>
+  // --- Run Python ---
+  function outf(text) {
+    document.getElementById("output").textContent += text;
+  }
+
+  function builtinRead(x) {
+    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+      throw "File not found: '" + x + "'";
+    return Sk.builtinFiles["files"][x];
+  }
+
+  function runPythonCode() {
+    const code = document.getElementById("pythonCode").value;
+    const output = document.getElementById("output");
+    output.textContent = "";
+
+    Sk.configure({ output: outf, read: builtinRead });
+    Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, code, true))
+      .catch(err => output.textContent = err.toString());
+  }
+
+  // --- Project Saving / Loading ---
+  function savePythonCode() {
+    const code = document.getElementById("pythonCode").value;
+    const title = prompt("Enter project name:");
+    if (!title) return;
+
+    let projects = JSON.parse(localStorage.getItem("studentProjects") || "[]");
+    projects.push({ title, code, date: new Date().toLocaleString() });
+    localStorage.setItem("studentProjects", JSON.stringify(projects));
+
+    alert("Project saved successfully!");
+    displayProjects();
+  }
+
+  function loadPythonCode() {
+    const projects = JSON.parse(localStorage.getItem("studentProjects") || "[]");
+    if (projects.length === 0) {
+      alert("No saved projects yet!");
+      return;
+    }
+
+    let list = "Choose a project:\n";
+    projects.forEach((p, i) => list += `${i + 1}. ${p.title}\n`);
+    const choice = prompt(list);
+    const index = parseInt(choice) - 1;
+
+    if (!isNaN(index) && projects[index]) {
+      document.getElementById("pythonCode").value = projects[index].code;
+      alert(`Loaded project: ${projects[index].title}`);
+    }
+  }
+
+  // --- Display Projects in Cards ---
+  function displayProjects() {
+    const container = document.getElementById("projectsList");
+    const projects = JSON.parse(localStorage.getItem("studentProjects") || "[]");
+    container.innerHTML = "";
+
+    projects.forEach((p, i) => {
+      const card = document.createElement("div");
+      card.className = "p-4 bg-gray-100 rounded-lg shadow hover:shadow-lg transition cursor-pointer";
+      card.innerHTML = `
+        <h3 class="font-bold text-lg mb-2">${p.title}</h3>
+        <p class="text-sm text-gray-600 mb-2">Saved on: ${p.date}</p>
+        <button onclick="openProject(${i})" class="bg-blue-600 text-white px-3 py-1 rounded">Open</button>
+        <button onclick="deleteProject(${i})" class="bg-red-600 text-white px-3 py-1 rounded ml-2">Delete</button>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function openProject(index) {
+    const projects = JSON.parse(localStorage.getItem("studentProjects") || "[]");
+    document.getElementById("pythonCode").value = projects[index].code;
+    alert(`Opened project: ${projects[index].title}`);
+  }
+
+  function deleteProject(index) {
+    let projects = JSON.parse(localStorage.getItem("studentProjects") || "[]");
+    if (confirm(`Delete "${projects[index].title}"?`)) {
+      projects.splice(index, 1);
+      localStorage.setItem("studentProjects", JSON.stringify(projects));
+      displayProjects();
+    }
+  }
+
+  // Display existing projects on page load
+  window.onload = displayProjects;
+</script>
+
+                    
+                  
+                  
                 </div>
             </div>
 

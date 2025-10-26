@@ -393,64 +393,137 @@
 
             <!-- Right Column - Resources & Tools -->
             <div class="space-y-8">
-                <!-- Resource Library -->
-                <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold text-deep-teal">Resource Library</h2>
-                        <button onclick="openModal('upload-resource')" class="text-warm-coral hover:text-deep-teal">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <div class="flex items-center space-x-3">
-                                <div class="text-2xl">📄</div>
-                                <div>
-                                    <h3 class="font-semibold text-gray-800">Python Basics.pdf</h3>
-                                    <p class="text-sm text-gray-600">2.3 MB • Uploaded 2 days ago</p>
-                                </div>
-                            </div>
-                            <button class="text-gray-400 hover:text-deep-teal">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <div class="flex items-center space-x-3">
-                                <div class="text-2xl">🎥</div>
-                                <div>
-                                    <h3 class="font-semibold text-gray-800">HTML Tutorial.mp4</h3>
-                                    <p class="text-sm text-gray-600">45.2 MB • Uploaded 1 week ago</p>
-                                </div>
-                            </div>
-                            <button class="text-gray-400 hover:text-deep-teal">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <div class="flex items-center space-x-3">
-                                <div class="text-2xl">💻</div>
-                                <div>
-                                    <h3 class="font-semibold text-gray-800">Code Examples.zip</h3>
-                                    <p class="text-sm text-gray-600">12.8 MB • Uploaded 3 days ago</p>
-                                </div>
-                            </div>
-                            <button class="text-gray-400 hover:text-deep-teal">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <!-- 📚 Resource Library -->
+<div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal" id="resource-library">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold text-deep-teal">Resource Library</h2>
+    <button onclick="openUploadModal()" class="text-warm-coral hover:text-deep-teal">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+    </button>
+  </div>
+  
+  <div id="resource-list" class="space-y-3"></div>
+</div>
+
+<!-- 📁 Upload Modal -->
+<div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+  <div class="bg-white rounded-2xl p-6 w-96">
+    <h3 class="text-lg font-bold text-deep-teal mb-4">Upload Resource</h3>
+    <form id="uploadForm">
+      <label class="block mb-2 text-gray-700">Title</label>
+      <input type="text" id="resTitle" class="border w-full p-2 rounded mb-3" required>
+
+      <label class="block mb-2 text-gray-700">Course</label>
+      <select id="resCourse" class="border w-full p-2 rounded mb-3" required></select>
+
+      <label class="block mb-2 text-gray-700">File</label>
+      <input type="file" id="resFile" class="border w-full p-2 rounded mb-3" required>
+
+      <div class="flex justify-end space-x-3">
+        <button type="button" onclick="closeUploadModal()" class="px-3 py-1 rounded bg-gray-200">Cancel</button>
+        <button type="submit" class="px-3 py-1 rounded bg-deep-teal text-white">Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ✅ Initialize course dropdown
+  const courseList = JSON.parse(localStorage.getItem('courses')) || ['Python Basics', 'Web Development', 'Game Design'];
+  const selectCourse = document.getElementById('resCourse');
+  selectCourse.innerHTML = courseList.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  // ✅ Render Resource Library
+  function renderResources() {
+    const resources = JSON.parse(localStorage.getItem('resources')) || [];
+    const list = document.getElementById('resource-list');
+    if (resources.length === 0) {
+      list.innerHTML = `<p class="text-gray-500 text-sm">No resources uploaded yet.</p>`;
+      return;
+    }
+
+    list.innerHTML = resources.map((r, i) => `
+      <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+        <div class="flex items-center space-x-3">
+          <div class="text-2xl">📄</div>
+          <div>
+            <h3 class="font-semibold text-gray-800">${r.title}</h3>
+            <p class="text-sm text-gray-600">${r.course} • ${r.size} • Uploaded ${new Date(r.date).toLocaleDateString()}</p>
+          </div>
+        </div>
+        <div class="flex space-x-3">
+          <button onclick="editResource(${i})" class="text-gray-400 hover:text-deep-teal">✏️</button>
+          <button onclick="deleteResource(${i})" class="text-gray-400 hover:text-red-500">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ✅ Modal controls
+  function openUploadModal() {
+    document.getElementById('uploadModal').classList.remove('hidden');
+    document.getElementById('uploadModal').classList.add('flex');
+  }
+  function closeUploadModal() {
+    document.getElementById('uploadModal').classList.add('hidden');
+  }
+
+  // ✅ Upload Resource
+  document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('resTitle').value;
+    const course = document.getElementById('resCourse').value;
+    const fileInput = document.getElementById('resFile');
+    const file = fileInput.files[0];
+
+    if (!file) return alert('Please choose a file.');
+
+    const reader = new FileReader();
+    reader.onload = function() {
+      const resources = JSON.parse(localStorage.getItem('resources')) || [];
+      resources.push({
+        title,
+        course,
+        size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
+        date: new Date().toISOString(),
+        file: reader.result
+      });
+      localStorage.setItem('resources', JSON.stringify(resources));
+      closeUploadModal();
+      e.target.reset();
+      renderResources();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ✅ Edit Resource
+  function editResource(index) {
+    const resources = JSON.parse(localStorage.getItem('resources')) || [];
+    const resource = resources[index];
+    const newTitle = prompt('Edit title:', resource.title);
+    if (newTitle) {
+      resources[index].title = newTitle;
+      localStorage.setItem('resources', JSON.stringify(resources));
+      renderResources();
+    }
+  }
+
+  // ✅ Delete Resource
+  function deleteResource(index) {
+    const resources = JSON.parse(localStorage.getItem('resources')) || [];
+    if (confirm('Are you sure you want to delete this resource?')) {
+      resources.splice(index, 1);
+      localStorage.setItem('resources', JSON.stringify(resources));
+      renderResources();
+    }
+  }
+
+  // ✅ Initial render
+  renderResources();
+</script>
+
 
                 <!-- Student Performance Heatmap -->
                 <div class="bg-white rounded-2xl shadow-lg p-6 scroll-reveal">
@@ -904,5 +977,105 @@
             }
         });
     </script>
+    <script>
+// ========== Resource Library (LocalStorage) ==========
+const addBtn = document.getElementById("addResourceBtn");
+const modal = document.getElementById("resourceModal");
+const cancelBtn = document.getElementById("cancelBtn");
+const saveBtn = document.getElementById("saveResourceBtn");
+const titleInput = document.getElementById("resourceTitle");
+const fileInput = document.getElementById("resourceFile");
+const list = document.getElementById("resourceList");
+const modalTitle = document.getElementById("modalTitle");
+
+let editIndex = null;
+let resources = JSON.parse(localStorage.getItem("resources") || "[]");
+renderResources();
+
+// --- Open modal for adding ---
+addBtn.onclick = () => {
+  modal.classList.remove("hidden");
+  modalTitle.textContent = "Add Resource";
+  editIndex = null;
+  titleInput.value = "";
+  fileInput.value = "";
+};
+
+// --- Close modal ---
+cancelBtn.onclick = () => modal.classList.add("hidden");
+
+// --- Save Resource ---
+saveBtn.onclick = () => {
+  const title = titleInput.value.trim();
+  const file = fileInput.files[0];
+  if (!title) return alert("Please enter a title.");
+
+  if (editIndex !== null) {
+    // Edit existing resource
+    resources[editIndex].title = title;
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resources[editIndex].file = reader.result;
+        updateStorage();
+      };
+      reader.readAsDataURL(file);
+    } else updateStorage();
+  } else {
+    // Add new resource
+    if (!file) return alert("Please upload a file.");
+    const reader = new FileReader();
+    reader.onload = () => {
+      resources.push({
+        title,
+        file: reader.result,
+        date: new Date().toLocaleDateString()
+      });
+      updateStorage();
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+// --- Update localStorage and UI ---
+function updateStorage() {
+  localStorage.setItem("resources", JSON.stringify(resources));
+  renderResources();
+  modal.classList.add("hidden");
+}
+
+// --- Render Resource Cards ---
+function renderResources() {
+  list.innerHTML = resources.map((r, i) => `
+    <div class="p-4 border rounded-xl bg-gray-50 hover:shadow-md transition">
+      <h4 class="font-semibold text-gray-800 mb-2">${r.title}</h4>
+      <p class="text-sm text-gray-500 mb-3">Uploaded: ${r.date}</p>
+      <div class="flex gap-2">
+        <a href="${r.file}" download="${r.title}" class="bg-[#0D4F4F] text-white px-3 py-1 rounded hover:bg-[#0b3f3f] text-sm">Download</a>
+        <button onclick="editResource(${i})" class="bg-yellow-400 px-3 py-1 rounded hover:bg-yellow-500 text-sm">Edit</button>
+        <button onclick="deleteResource(${i})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// --- Edit Resource ---
+window.editResource = (index) => {
+  editIndex = index;
+  titleInput.value = resources[index].title;
+  fileInput.value = "";
+  modal.classList.remove("hidden");
+  modalTitle.textContent = "Edit Resource";
+};
+
+// --- Delete Resource ---
+window.deleteResource = (index) => {
+  if (confirm("Delete this resource?")) {
+    resources.splice(index, 1);
+    updateStorage();
+  }
+};
+</script>
+
 </body>
 </html>
